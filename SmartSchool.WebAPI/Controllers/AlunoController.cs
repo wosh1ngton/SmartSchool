@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartSchool.WebAPI.Data;
 using SmartSchool.WebAPI.Dtos;
+using SmartSchool.WebAPI.Helpers;
 using SmartSchool.WebAPI.Models;
 
 namespace SmartSchool.WebAPI.Controllers
@@ -25,18 +26,24 @@ namespace SmartSchool.WebAPI.Controllers
         [HttpGet]
         //Retorna uma lista de alunos
         //public List<Aluno> Get() => Alunos;
-        public IActionResult Get()
+        public async Task<IActionResult> Get([FromQuery] PageParams pageParams)
         {
-            var alunos = _repo.GetAllAlunos(true);         
+            var alunos = await _repo.GetAllAlunosAsync(pageParams, true);        
 
-            
-            return Ok(_mapper.Map<IEnumerable<AlunoDto>>(alunos));
+            var alunosResult = _mapper.Map<IEnumerable<AlunoDto>>(alunos);
+            Response.AddPagination(alunos.CurrentPage, alunos.PageSize, alunos.TotalCount, alunos.TotalPages);
+            return Ok(alunosResult);
         }
 
         //QueryString -> http://localhost:5241/api/aluno/byId?id=1
         // [HttpGet("{byId}")]
         // public IActionResult GetById(int id) 
 
+        /// <summary>
+        /// Método que retorna um aluno
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id:int}")]
         public IActionResult GetById(int id)
         {
